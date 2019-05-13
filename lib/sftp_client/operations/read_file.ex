@@ -10,9 +10,13 @@ defmodule SFTPClient.Operations.ReadFile do
   @doc """
   Reads a file from the server, and returns the data as String.
   """
-  @spec read_file(Conn.t(), Path.t()) ::
+  @spec read_file(Conn.t() | SFTPClient.conn_args(), Path.t()) ::
           {:ok, binary} | {:error, SFTPClient.error()}
-  def read_file(%Conn{} = conn, path) do
+  def read_file(config_or_conn_or_opts, path) do
+    with_connection(config_or_conn_or_opts, &do_read_file(&1, path))
+  end
+
+  defp do_read_file(conn, path) do
     conn.channel_pid
     |> sftp_adapter().read_file(
       to_charlist(path),
@@ -28,8 +32,11 @@ defmodule SFTPClient.Operations.ReadFile do
   Reads a file from the server, and returns the data as String. Raises when the
   operation fails.
   """
-  @spec read_file!(Conn.t(), Path.t()) :: binary | no_return
-  def read_file!(%Conn{} = conn, path) do
-    conn |> read_file(path) |> may_bang!()
+  @spec read_file!(Conn.t() | SFTPClient.conn_args(), Path.t()) ::
+          binary | no_return
+  def read_file!(config_or_conn_or_opts, path) do
+    config_or_conn_or_opts
+    |> read_file(path)
+    |> may_bang!()
   end
 end

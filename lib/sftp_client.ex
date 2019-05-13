@@ -145,6 +145,11 @@ defmodule SFTPClient do
   """
   @type error :: ConnError.t() | InvalidOptionError.t() | OperationError.t()
 
+  @typedoc """
+  A type representing arguments to build a connection to a server.
+  """
+  @type conn_args :: Config.t() | Keyword.t() | %{optional(atom) => any}
+
   @doc delegate_to: {Operations.CloseHandle, :close_handle!, 1}
   def close_handle!(handle) do
     run(Operations.CloseHandle, :close_handle!, [handle])
@@ -176,23 +181,23 @@ defmodule SFTPClient do
   end
 
   @doc delegate_to: {Operations.DeleteDir, :delete_dir!, 2}
-  def delete_dir!(conn, path) do
-    run(Operations.DeleteDir, :delete_dir!, [conn, path])
+  def delete_dir!(config_or_conn_or_opts, path) do
+    run(Operations.DeleteDir, :delete_dir!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.DeleteDir, :delete_dir, 2}
-  def delete_dir(conn, path) do
-    run(Operations.DeleteDir, :delete_dir, [conn, path])
+  def delete_dir(config_or_conn_or_opts, path) do
+    run(Operations.DeleteDir, :delete_dir, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.DeleteFile, :delete_file!, 2}
-  def delete_file!(conn, path) do
-    run(Operations.DeleteFile, :delete_file!, [conn, path])
+  def delete_file!(config_or_conn_or_opts, path) do
+    run(Operations.DeleteFile, :delete_file!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.DeleteFile, :delete_file, 2}
-  def delete_file(conn, path) do
-    run(Operations.DeleteFile, :delete_file, [conn, path])
+  def delete_file(config_or_conn_or_opts, path) do
+    run(Operations.DeleteFile, :delete_file, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.Disconnect, :disconnect, 1}
@@ -201,111 +206,129 @@ defmodule SFTPClient do
   end
 
   @doc delegate_to: {Operations.DownloadFile, :download_file!, 3}
-  def download_file!(conn, remote_path, local_path) do
+  def download_file!(config_or_conn_or_opts, remote_path, local_path) do
     run(Operations.DownloadFile, :download_file!, [
-      conn,
+      config_or_conn_or_opts,
       remote_path,
       local_path
     ])
   end
 
   @doc delegate_to: {Operations.DownloadFile, :download_file, 3}
-  def download_file(conn, remote_path, local_path) do
-    run(Operations.DownloadFile, :download_file, [conn, remote_path, local_path])
+  def download_file(config_or_conn_or_opts, remote_path, local_path) do
+    run(Operations.DownloadFile, :download_file, [
+      config_or_conn_or_opts,
+      remote_path,
+      local_path
+    ])
   end
 
   @doc delegate_to: {Operations.FileInfo, :file_info!, 2}
-  def file_info!(conn, path) do
-    run(Operations.FileInfo, :file_info!, [conn, path])
+  def file_info!(config_or_conn_or_opts, path) do
+    run(Operations.FileInfo, :file_info!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.FileInfo, :file_info, 2}
-  def file_info(conn, path) do
-    run(Operations.FileInfo, :file_info, [conn, path])
+  def file_info(config_or_conn_or_opts, path) do
+    run(Operations.FileInfo, :file_info, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.LinkInfo, :link_info!, 2}
-  def link_info!(conn, path) do
-    run(Operations.LinkInfo, :link_info!, [conn, path])
+  def link_info!(config_or_conn_or_opts, path) do
+    run(Operations.LinkInfo, :link_info!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.LinkInfo, :link_info, 2}
-  def link_info(conn, path) do
-    run(Operations.LinkInfo, :link_info, [conn, path])
+  def link_info(config_or_conn_or_opts, path) do
+    run(Operations.LinkInfo, :link_info, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.ListDir, :list_dir!, 2}
-  def list_dir!(conn, path) do
-    run(Operations.ListDir, :list_dir!, [conn, path])
+  def list_dir!(config_or_conn_or_opts, path) do
+    run(Operations.ListDir, :list_dir!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.ListDir, :list_dir, 2}
-  def list_dir(conn, path) do
-    run(Operations.ListDir, :list_dir, [conn, path])
+  def list_dir(config_or_conn_or_opts, path) do
+    run(Operations.ListDir, :list_dir, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.MakeDir, :make_dir!, 2}
-  def make_dir!(conn, path) do
-    run(Operations.MakeDir, :make_dir!, [conn, path])
+  def make_dir!(config_or_conn_or_opts, path) do
+    run(Operations.MakeDir, :make_dir!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.MakeDir, :make_dir, 2}
-  def make_dir(conn, path) do
-    run(Operations.MakeDir, :make_dir, [conn, path])
+  def make_dir(config_or_conn_or_opts, path) do
+    run(Operations.MakeDir, :make_dir, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.MakeLink, :make_link!, 3}
-  def make_link!(conn, symlink_path, target_path) do
+  def make_link!(config_or_conn_or_opts, symlink_path, target_path) do
     run(Operations.MakeLink, :make_link!, [
-      conn,
+      config_or_conn_or_opts,
       symlink_path,
       target_path
     ])
   end
 
   @doc delegate_to: {Operations.MakeLink, :make_link, 3}
-  def make_link(conn, symlink_path, target_path) do
-    run(Operations.MakeLink, :make_link, [conn, symlink_path, target_path])
+  def make_link(config_or_conn_or_opts, symlink_path, target_path) do
+    run(Operations.MakeLink, :make_link, [
+      config_or_conn_or_opts,
+      symlink_path,
+      target_path
+    ])
   end
 
   @doc delegate_to: {Operations.OpenDir, :open_dir!, 2}
-  def open_dir!(conn, path) do
-    run(Operations.OpenDir, :open_dir!, [conn, path])
+  def open_dir!(config_or_conn_or_opts, path) do
+    run(Operations.OpenDir, :open_dir!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.OpenDir, :open_dir!, 3}
-  def open_dir!(conn, path, fun) do
-    run(Operations.OpenDir, :open_dir!, [conn, path, fun])
+  def open_dir!(config_or_conn_or_opts, path, fun) do
+    run(Operations.OpenDir, :open_dir!, [config_or_conn_or_opts, path, fun])
   end
 
   @doc delegate_to: {Operations.OpenDir, :open_dir, 2}
-  def open_dir(conn, path) do
-    run(Operations.OpenDir, :open_dir, [conn, path])
+  def open_dir(config_or_conn_or_opts, path) do
+    run(Operations.OpenDir, :open_dir, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.OpenDir, :open_dir, 3}
-  def open_dir(conn, path, fun) do
-    run(Operations.OpenDir, :open_dir, [conn, path, fun])
+  def open_dir(config_or_conn_or_opts, path, fun) do
+    run(Operations.OpenDir, :open_dir, [config_or_conn_or_opts, path, fun])
   end
 
   @doc delegate_to: {Operations.OpenFile, :open_file!, 3}
-  def open_file!(conn, path, modes) do
-    run(Operations.OpenFile, :open_file!, [conn, path, modes])
+  def open_file!(config_or_conn_or_opts, path, modes) do
+    run(Operations.OpenFile, :open_file!, [config_or_conn_or_opts, path, modes])
   end
 
   @doc delegate_to: {Operations.OpenFile, :open_file!, 4}
-  def open_file!(conn, path, modes, fun) do
-    run(Operations.OpenFile, :open_file!, [conn, path, modes, fun])
+  def open_file!(config_or_conn_or_opts, path, modes, fun) do
+    run(Operations.OpenFile, :open_file!, [
+      config_or_conn_or_opts,
+      path,
+      modes,
+      fun
+    ])
   end
 
   @doc delegate_to: {Operations.OpenFile, :open_file, 3}
-  def open_file(conn, path, modes) do
-    run(Operations.OpenFile, :open_file, [conn, path, modes])
+  def open_file(config_or_conn_or_opts, path, modes) do
+    run(Operations.OpenFile, :open_file, [config_or_conn_or_opts, path, modes])
   end
 
   @doc delegate_to: {Operations.OpenFile, :open_file, 4}
-  def open_file(conn, path, modes, fun) do
-    run(Operations.OpenFile, :open_file, [conn, path, modes, fun])
+  def open_file(config_or_conn_or_opts, path, modes, fun) do
+    run(Operations.OpenFile, :open_file, [
+      config_or_conn_or_opts,
+      path,
+      modes,
+      fun
+    ])
   end
 
   @doc delegate_to: {Operations.ReadFileChunk, :read_file_chunk!, 2}
@@ -319,63 +342,87 @@ defmodule SFTPClient do
   end
 
   @doc delegate_to: {Operations.ReadFile, :read_file!, 2}
-  def read_file!(conn, path) do
-    run(Operations.ReadFile, :read_file!, [conn, path])
+  def read_file!(config_or_conn_or_opts, path) do
+    run(Operations.ReadFile, :read_file!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.ReadFile, :read_file, 2}
-  def read_file(conn, path) do
-    run(Operations.ReadFile, :read_file, [conn, path])
+  def read_file(config_or_conn_or_opts, path) do
+    run(Operations.ReadFile, :read_file, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.ReadLink, :read_link!, 2}
-  def read_link!(conn, path) do
-    run(Operations.ReadLink, :read_link!, [conn, path])
+  def read_link!(config_or_conn_or_opts, path) do
+    run(Operations.ReadLink, :read_link!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.ReadLink, :read_link, 2}
-  def read_link(conn, path) do
-    run(Operations.ReadLink, :read_link, [conn, path])
+  def read_link(config_or_conn_or_opts, path) do
+    run(Operations.ReadLink, :read_link, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.Rename, :rename!, 3}
-  def rename!(conn, old_name, new_name) do
-    run(Operations.Rename, :rename!, [conn, old_name, new_name])
+  def rename!(config_or_conn_or_opts, old_path, new_path) do
+    run(Operations.Rename, :rename!, [
+      config_or_conn_or_opts,
+      old_path,
+      new_path
+    ])
   end
 
   @doc delegate_to: {Operations.Rename, :rename, 3}
-  def rename(conn, old_name, new_name) do
-    run(Operations.Rename, :rename, [conn, old_name, new_name])
+  def rename(config_or_conn_or_opts, old_path, new_path) do
+    run(Operations.Rename, :rename, [
+      config_or_conn_or_opts,
+      old_path,
+      new_path
+    ])
   end
 
   @doc delegate_to: {Operations.StreamFile, :stream_file!, 3}
-  def stream_file!(conn, path, chunk_size) do
-    run(Operations.StreamFile, :stream_file!, [conn, path, chunk_size])
+  def stream_file!(config_or_conn_or_opts, path, chunk_size) do
+    run(Operations.StreamFile, :stream_file!, [
+      config_or_conn_or_opts,
+      path,
+      chunk_size
+    ])
   end
 
   @doc delegate_to: {Operations.StreamFile, :stream_file!, 2}
-  def stream_file!(conn, path) do
-    run(Operations.StreamFile, :stream_file!, [conn, path])
+  def stream_file!(config_or_conn_or_opts, path) do
+    run(Operations.StreamFile, :stream_file!, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.StreamFile, :stream_file, 3}
-  def stream_file(conn, path, chunk_size) do
-    run(Operations.StreamFile, :stream_file, [conn, path, chunk_size])
+  def stream_file(config_or_conn_or_opts, path, chunk_size) do
+    run(Operations.StreamFile, :stream_file, [
+      config_or_conn_or_opts,
+      path,
+      chunk_size
+    ])
   end
 
   @doc delegate_to: {Operations.StreamFile, :stream_file, 2}
-  def stream_file(conn, path) do
-    run(Operations.StreamFile, :stream_file, [conn, path])
+  def stream_file(config_or_conn_or_opts, path) do
+    run(Operations.StreamFile, :stream_file, [config_or_conn_or_opts, path])
   end
 
   @doc delegate_to: {Operations.UploadFile, :upload_file!, 3}
-  def upload_file!(conn, local_path, remote_path) do
-    run(Operations.UploadFile, :upload_file!, [conn, local_path, remote_path])
+  def upload_file!(config_or_conn_or_opts, local_path, remote_path) do
+    run(Operations.UploadFile, :upload_file!, [
+      config_or_conn_or_opts,
+      local_path,
+      remote_path
+    ])
   end
 
   @doc delegate_to: {Operations.UploadFile, :upload_file, 3}
-  def upload_file(conn, local_path, remote_path) do
-    run(Operations.UploadFile, :upload_file, [conn, local_path, remote_path])
+  def upload_file(config_or_conn_or_opts, local_path, remote_path) do
+    run(Operations.UploadFile, :upload_file, [
+      config_or_conn_or_opts,
+      local_path,
+      remote_path
+    ])
   end
 
   @doc delegate_to: {Operations.WriteFileChunk, :write_file_chunk!, 2}
@@ -389,12 +436,16 @@ defmodule SFTPClient do
   end
 
   @doc delegate_to: {Operations.WriteFile, :write_file!, 3}
-  def write_file!(conn, path, data) do
-    run(Operations.WriteFile, :write_file!, [conn, path, data])
+  def write_file!(config_or_conn_or_opts, path, data) do
+    run(Operations.WriteFile, :write_file!, [
+      config_or_conn_or_opts,
+      path,
+      data
+    ])
   end
 
   @doc delegate_to: {Operations.WriteFile, :write_file, 3}
-  def write_file(conn, path, data) do
-    run(Operations.WriteFile, :write_file, [conn, path, data])
+  def write_file(config_or_conn_or_opts, path, data) do
+    run(Operations.WriteFile, :write_file, [config_or_conn_or_opts, path, data])
   end
 end

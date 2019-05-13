@@ -13,9 +13,13 @@ defmodule SFTPClient.Operations.OpenDir do
   Opens a handle to a directory on the server. The handle can be used for
   reading directory contents.
   """
-  @spec open_dir(Conn.t(), Path.t()) ::
+  @spec open_dir(Conn.t() | SFTPClient.conn_args(), Path.t()) ::
           {:ok, Handle.t()} | {:error, SFTPClient.error()}
-  def open_dir(%Conn{} = conn, path) do
+  def open_dir(config_or_conn_or_opts, path) do
+    with_connection(config_or_conn_or_opts, &do_open_dir(&1, path))
+  end
+
+  defp do_open_dir(conn, path) do
     conn.channel_pid
     |> sftp_adapter().opendir(to_charlist(path), conn.config.operation_timeout)
     |> case do
@@ -32,22 +36,27 @@ defmodule SFTPClient.Operations.OpenDir do
   reading directory contents. Then runs the function and closes the handle when
   finished.
   """
-  @spec open_dir(Conn.t(), Path.t(), (Handle.t() -> res)) ::
+  @spec open_dir(Conn.t() | SFTPClient.conn_args(), Path.t(), (Handle.t() -> res)) ::
           {:ok, res} | {:error, SFTPClient.error()}
         when res: var
-  def open_dir(%Conn{} = conn, path, fun) do
-    with {:ok, handle} <- open_dir(conn, path) do
-      {:ok, run_callback(handle, fun)}
-    end
+  def open_dir(config_or_conn_or_opts, path, fun) do
+    with_connection(config_or_conn_or_opts, fn conn ->
+      with {:ok, handle} <- do_open_dir(conn, path) do
+        {:ok, run_callback(handle, fun)}
+      end
+    end)
   end
 
   @doc """
   Opens a handle to a directory on the server. The handle can be used for
   reading directory contents. Raises when the operation fails.
   """
-  @spec open_dir!(Conn.t(), Path.t()) :: Handle.t() | no_return
-  def open_dir!(%Conn{} = conn, path) do
-    conn |> open_dir(path) |> may_bang!()
+  @spec open_dir!(Conn.t() | SFTPClient.conn_args(), Path.t()) ::
+          Handle.t() | no_return
+  def open_dir!(config_or_conn_or_opts, path) do
+    config_or_conn_or_opts
+    |> open_dir(path)
+    |> may_bang!()
   end
 
   @doc """
@@ -55,11 +64,11 @@ defmodule SFTPClient.Operations.OpenDir do
   reading directory contents. Then runs the function and closes the handle when
   finished. Raises when the operation fails.
   """
-  @spec open_dir!(Conn.t(), Path.t(), (Handle.t() -> res)) ::
-          res | no_return
-        when res: var
-  def open_dir!(%Conn{} = conn, path, fun) do
-    conn
+  @spec open_dir!(
+          Conn.t() | SFTPClient.conn_args(), Path.t(), (Handle.t() -> res)
+        ) :: res | no_return when res: var
+  def open_dir!(config_or_conn_or_opts, path, fun) do
+    config_or_conn_or_opts
     |> open_dir!(path)
     |> run_callback(fun)
   end

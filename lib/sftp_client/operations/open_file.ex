@@ -13,9 +13,16 @@ defmodule SFTPClient.Operations.OpenFile do
   Opens a file on the server and returns a handle, which can be used for reading
   or writing.
   """
-  @spec open_file(Conn.t(), Path.t(), [SFTPClient.access_mode()]) ::
-          {:ok, Handle.t()} | {:error, SFTPClient.error()}
-  def open_file(%Conn{} = conn, path, modes) do
+  @spec open_file(
+          Conn.t() | SFTPClient.conn_args(),
+          Path.t(),
+          [SFTPClient.access_mode()]
+        ) :: {:ok, Handle.t()} | {:error, SFTPClient.error()}
+  def open_file(config_or_conn_or_opts, path, modes) do
+    with_connection(config_or_conn_or_opts, &do_open_file(&1, path, modes))
+  end
+
+  defp do_open_file(conn, path, modes) do
     conn.channel_pid
     |> sftp_adapter().open(
       to_charlist(path),
@@ -36,26 +43,33 @@ defmodule SFTPClient.Operations.OpenFile do
   or writing, then runs the function and closes the handle when finished.
   """
   @spec open_file(
-          Conn.t(),
+          Conn.t() | SFTPClient.conn_args(),
           Path.t(),
           [SFTPClient.access_mode()],
           (Handle.t() -> res)
         ) :: {:ok, res} | {:error, SFTPClient.error()}
         when res: var
-  def open_file(%Conn{} = conn, path, modes, fun) do
-    with {:ok, handle} <- open_file(conn, path, modes) do
-      {:ok, run_callback(handle, fun)}
-    end
+  def open_file(config_or_conn_or_opts, path, modes, fun) do
+    with_connection(config_or_conn_or_opts, fn conn ->
+      with {:ok, handle} <- do_open_file(conn, path, modes) do
+        {:ok, run_callback(handle, fun)}
+      end
+    end)
   end
 
   @doc """
   Opens a file on the server and returns a handle, which can be used for reading
   or writing. Raises when the operation fails.
   """
-  @spec open_file!(Conn.t(), Path.t(), [SFTPClient.access_mode()]) ::
-          Handle.t() | no_return
-  def open_file!(%Conn{} = conn, path, modes) do
-    conn |> open_file(path, modes) |> may_bang!()
+  @spec open_file!(
+          Conn.t() | SFTPClient.conn_args(),
+          Path.t(),
+          [SFTPClient.access_mode()]
+        ) :: Handle.t() | no_return
+  def open_file!(config_or_conn_or_opts, path, modes) do
+    config_or_conn_or_opts
+    |> open_file(path, modes)
+    |> may_bang!()
   end
 
   @doc """
@@ -64,14 +78,14 @@ defmodule SFTPClient.Operations.OpenFile do
   when the operation fails.
   """
   @spec open_file!(
-          Conn.t(),
+          Conn.t() | SFTPClient.conn_args(),
           Path.t(),
           [SFTPClient.access_mode()],
           (Handle.t() -> res)
         ) :: res | no_return
         when res: var
-  def open_file!(%Conn{} = conn, path, modes, fun) do
-    conn
+  def open_file!(config_or_conn_or_opts, path, modes, fun) do
+    config_or_conn_or_opts
     |> open_file!(path, modes)
     |> run_callback(fun)
   end

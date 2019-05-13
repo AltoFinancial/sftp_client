@@ -14,7 +14,7 @@ defmodule SFTPClient.Operations.WriteFileChunk do
   """
   @spec write_file_chunk(Handle.t(), binary) ::
           :ok | {:error, SFTPClient.error()}
-  def write_file_chunk(%Handle{} = handle, data) do
+  def write_file_chunk(handle, data) do
     case sftp_adapter().write(
            handle.conn.channel_pid,
            handle.id,
@@ -31,7 +31,7 @@ defmodule SFTPClient.Operations.WriteFileChunk do
   write or append flag. Raises when the operation fails.
   """
   @spec write_file_chunk!(Handle.t(), binary) :: :ok | no_return
-  def write_file_chunk!(%Handle{} = handle, data) do
+  def write_file_chunk!(handle, data) do
     handle |> write_file_chunk(data) |> may_bang!()
   end
 end

@@ -15,7 +15,7 @@ defmodule SFTPClient.Operations.ReadFileChunk do
   """
   @spec read_file_chunk(Handle.t(), non_neg_integer) ::
           {:ok, String.t()} | :eof | {:error, SFTPClient.error()}
-  def read_file_chunk(%Handle{} = handle, length) do
+  def read_file_chunk(handle, length) do
     case sftp_adapter().read(
            handle.conn.channel_pid,
            handle.id,
@@ -34,7 +34,7 @@ defmodule SFTPClient.Operations.ReadFileChunk do
   """
   @spec read_file_chunk!(Handle.t(), non_neg_integer) ::
           String.t() | :eof | no_return
-  def read_file_chunk!(%Handle{} = handle, length) do
+  def read_file_chunk!(handle, length) do
     case read_file_chunk(handle, length) do
       :eof -> :eof
       result -> may_bang!(result)

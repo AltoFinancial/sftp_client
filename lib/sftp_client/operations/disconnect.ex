@@ -11,7 +11,7 @@ defmodule SFTPClient.Operations.Disconnect do
   Stops an SFTP channel and closes the SSH connection.
   """
   @spec disconnect(Conn.t()) :: :ok
-  def disconnect(%Conn{} = conn) do
+  def disconnect(conn) do
     :ok = sftp_adapter().stop_channel(conn.channel_pid)
     :ok = ssh_adapter().close(conn.conn_ref)
   end

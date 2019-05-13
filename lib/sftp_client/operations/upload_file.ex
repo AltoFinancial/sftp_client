@@ -3,6 +3,8 @@ defmodule SFTPClient.Operations.UploadFile do
   A module that provides functions to upload files to an SFTP server.
   """
 
+  import SFTPClient.OperationUtil
+
   alias SFTPClient.Conn
   alias SFTPClient.ConnError
   alias SFTPClient.InvalidOptionError
@@ -11,9 +13,9 @@ defmodule SFTPClient.Operations.UploadFile do
   @doc """
   Uploads a file from the file system to the server.
   """
-  @spec upload_file(Conn.t(), Path.t(), Path.t()) ::
+  @spec upload_file(Conn.t() | SFTPClient.conn_args(), Path.t(), Path.t()) ::
           {:ok, Path.t()} | {:error, SFTPClient.error()}
-  def upload_file(%Conn{} = conn, local_path, remote_path) do
+  def upload_file(config_or_conn_or_opts, local_path, remote_path) do
     {:ok, upload_file!(conn, local_path, remote_path)}
   rescue
     error in [ConnError, InvalidOptionError, OperationError] ->
@@ -24,8 +26,19 @@ defmodule SFTPClient.Operations.UploadFile do
   Uploads a file from the file system to the server.Raises when the operation
   fails.
   """
-  @spec upload_file!(Conn.t(), Path.t(), Path.t()) :: Path.t() | no_return
-  def upload_file!(%Conn{} = conn, local_path, remote_path) do
+  @spec upload_file!(
+          Conn.t() | SFTPClient.conn_args(),
+          Path.t(),
+          Path.t()
+        ) :: Path.t() | no_return
+  def upload_file!(config_or_conn_or_opts, local_path, remote_path) do
+    with_connection!(
+      config_or_conn_or_opts,
+      &do_upload_file(&1, local_path, remote_path)
+    )
+  end
+
+  defp do_upload_file(conn, local_path, remote_path) do
     source_stream = File.stream!(local_path)
     target_stream = SFTPClient.stream_file!(conn, remote_path)
 

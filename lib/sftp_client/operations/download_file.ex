@@ -3,6 +3,8 @@ defmodule SFTPClient.Operations.DownloadFile do
   A module that provides functions to download files from an SFTP server.
   """
 
+  import SFTPClient.OperationUtil
+
   alias SFTPClient.Conn
   alias SFTPClient.ConnError
   alias SFTPClient.InvalidOptionError
@@ -13,10 +15,13 @@ defmodule SFTPClient.Operations.DownloadFile do
   When the local path is a directory, the file name of the local file is
   inferred from the remote path.
   """
-  @spec download_file(Conn.t(), Path.t(), Path.t()) ::
-          {:ok, Path.t()} | {:error, SFTPClient.error()}
-  def download_file(%Conn{} = conn, remote_path, local_path) do
-    {:ok, download_file!(conn, remote_path, local_path)}
+  @spec download_file(
+          Conn.t() | SFTPClient.conn_args(),
+          Path.t(),
+          Path.t()
+        ) :: {:ok, Path.t()} | {:error, SFTPClient.error()}
+  def download_file(config_or_conn_or_opts, remote_path, local_path) do
+    {:ok, download_file!(config_or_conn_or_opts, remote_path, local_path)}
   rescue
     error in [ConnError, InvalidOptionError, OperationError] ->
       {:error, error}
@@ -27,8 +32,19 @@ defmodule SFTPClient.Operations.DownloadFile do
   When the local path is a directory, the file name of the local file is
   inferred from the remote path. Raises when the operation fails.
   """
-  @spec download_file!(Conn.t(), Path.t(), Path.t()) :: Path.t() | no_return
-  def download_file!(%Conn{} = conn, remote_path, local_path) do
+  @spec download_file!(
+          Conn.t() | SFTPClient.conn_args(),
+          Path.t(),
+          Path.t()
+        ) :: Path.t() | no_return
+  def download_file!(config_or_conn_or_opts, remote_path, local_path) do
+    with_connection!(
+      config_or_conn_or_opts,
+      &do_download_file(&1, remote_path, local_path)
+    )
+  end
+
+  defp do_download_file(conn, remote_path, local_path) do
     local_path = get_local_path(local_path, remote_path)
     source_stream = SFTPClient.stream_file!(conn, remote_path)
     target_stream = File.stream!(local_path)

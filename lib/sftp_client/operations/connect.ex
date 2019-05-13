@@ -37,8 +37,7 @@ defmodule SFTPClient.Operations.Connect do
   * `:operation_timeout` - The operation timeout in milliseconds (defaults to
     5000 ms), can be set to `:infinity` to disable timeout.
   """
-  @spec connect(Config.t() | Keyword.t() | %{optional(atom) => any}) ::
-          {:ok, Conn.t()} | {:error, term}
+  @spec connect(SFTPClient.conn_args()) :: {:ok, Conn.t()} | {:error, term}
   def connect(config_or_opts) do
     config = Config.new(config_or_opts)
 
@@ -58,11 +57,8 @@ defmodule SFTPClient.Operations.Connect do
   and closes the connection when finished. Accepts the same options as
   `connect/1`.
   """
-  @spec connect(
-          Config.t() | Keyword.t() | %{optional(atom) => any},
-          (Conn.t() -> res)
-        ) :: {:ok, res} | {:error, SFTPClient.error()}
-        when res: var
+  @spec connect(SFTPClient.conn_args(), (Conn.t() -> res)) ::
+          {:ok, res} | {:error, SFTPClient.error()} when res: var
   def connect(config_or_opts, fun) do
     with {:ok, conn} <- connect(config_or_opts) do
       {:ok, run_callback(conn, fun)}
@@ -73,8 +69,7 @@ defmodule SFTPClient.Operations.Connect do
   Connects to an SSH server and opens an SFTP channel. Accepts the same options
   as `connect/1`. Raises when the connection fails.
   """
-  @spec connect!(Config.t() | Keyword.t() | %{optional(atom) => any}) ::
-          Conn.t() | no_return
+  @spec connect!(SFTPClient.conn_args()) :: Conn.t() | no_return
   def connect!(config_or_opts) do
     config_or_opts |> connect() |> may_bang!()
   end
@@ -84,11 +79,8 @@ defmodule SFTPClient.Operations.Connect do
   and closes the connection when finished. Accepts the same options as
   `connect/1`. Raises when the connection fails.
   """
-  @spec connect!(
-          Config.t() | Keyword.t() | %{optional(atom) => any},
-          (Conn.t() -> res)
-        ) :: res | no_return
-        when res: var
+  @spec connect!(SFTPClient.conn_args(), (Conn.t() -> res)) ::
+          res | no_return when res: var
   def connect!(config_or_opts, fun) do
     config_or_opts
     |> connect!()

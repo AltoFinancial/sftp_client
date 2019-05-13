@@ -3,6 +3,7 @@ defmodule SFTPClient.OperationUtil do
   A utility module that intends to be imported by operation modules.
   """
 
+  alias SFTPClient.Conn
   alias SFTPClient.ConnError
   alias SFTPClient.InvalidOptionError
   alias SFTPClient.OperationError
@@ -61,4 +62,48 @@ defmodule SFTPClient.OperationUtil do
 
   defp load_opt_value(value) when is_list(value), do: to_string(value)
   defp load_opt_value(value), do: value
+
+  @doc """
+  Uses the given conn or builds up a connection with the given config that is
+  closed after the callback has run.
+  """
+  @spec with_connection(
+          Config.t() | Conn.t() | Keyword.t() | %{optional(atom) => any},
+          (Conn.t() -> res)
+        ) :: res when res: var
+  def with_connection(config_or_conn_or_opts)
+
+  def with_connection(%Conn{} = conn, fun), do: fun.(conn)
+
+  def with_connection(config_or_opts, fun) do
+    with {:ok, conn} <- SFTPClient.connect(config_or_opts) do
+      try do
+        fun.(conn)
+      after
+        SFTPClient.disconnect(conn)
+      end
+    end
+  end
+
+  @doc """
+  Uses the given conn or builds up a connection with the given config that is
+  closed after the callback has run. Raises on error.
+  """
+  @spec with_connection!(
+          Config.t() | Conn.t() | Keyword.t() | %{optional(atom) => any},
+          (Conn.t() -> res)
+        ) :: res when res: var
+  def with_connection!(config_or_conn_or_opts)
+
+  def with_connection!(%Conn{} = conn, fun), do: fun.(conn)
+
+  def with_connection!(config_or_opts, fun) do
+    conn = SFTPClient.connect!(config_or_opts)
+
+    try do
+      fun.(conn)
+    after
+      SFTPClient.disconnect(conn)
+    end
+  end
 end
